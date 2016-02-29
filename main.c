@@ -5,6 +5,9 @@
 #include "keypad.h"
 #include "lcd.h"
 #include "timer.h"
+#include <math.h>
+
+#define MAX_PINS 10
 
 typedef enum enumState{
   PRE_ENTER,
@@ -25,6 +28,7 @@ volatile STATE state = PRE_ENTER;
 
 void main(void){
   int x;
+  int pinTrack = 0;
   SYSTEMConfigPerformance(10000000);
   enableInterrupts();
   LCD_Init();
@@ -32,6 +36,9 @@ void main(void){
   char lastChar = NULL;
   char currentChar = NULL;
   int numCount = 0;
+  short int pin = 0;
+  short int pins[MAX_PINS];
+  for(x = 0; x < MAX_PINS; x++)pins[x] = NULL;
   while(1){
     switch(state){
       case PRE_ENTER:
@@ -39,6 +46,7 @@ void main(void){
         LCD_PrintString("Enter PIN:");
         LCD_MoveCursor(1,2);
         numCount = 0;
+        pin = 0;
         currentChar = NULL;
         lastChar = NULL;
         state = ENTER_WAIT;
@@ -51,6 +59,7 @@ void main(void){
           }else if(currentChar == '#'){
             state = ENTER_INVALID;
           }else{
+            pin = atoi(&currentChar) * 1000;
             LCD_PrintChar(currentChar);
             state = ENTER_WAIT_RELEASE;
           }
@@ -60,6 +69,7 @@ void main(void){
           }else if(( lastChar == '*' && currentChar != '*')|| (lastChar != '*' && currentChar == '*') || currentChar == '#'){
             state = ENTER_INVALID;
           }else{
+            pin = pin + atoi(&currentChar) * 100;
             LCD_PrintChar(currentChar);
             state = ENTER_WAIT_RELEASE;
           }
@@ -67,6 +77,7 @@ void main(void){
           if(currentChar == '*' || currentChar == '#'){
             state = ENTER_INVALID;
           }else{
+            pin = pin + atoi(&currentChar) * 10;
             LCD_PrintChar(currentChar);
             state = ENTER_WAIT_RELEASE;
           }
@@ -74,9 +85,14 @@ void main(void){
           if(currentChar == '*' || currentChar == '#'){
             state = ENTER_INVALID;
           }else{
+            pin = pin + atoi(&currentChar);
             LCD_PrintChar(currentChar);
             delayMs(500);
-            state = ENTER_VALID;
+            state = ENTER_INVALID;
+            for(x = 0; x < MAX_PINS; x++){
+              if(pins[x] == pin)state = ENTER_VALID;
+            };
+            if(pin == 0)state = ENTER_INVALID;
           }
         }
         numCount++;
@@ -105,6 +121,7 @@ void main(void){
         break;
       case PRE_SET:
         numCount = 0;
+        pin = 0;
         lastChar = NULL;
         currentChar = NULL;
         LCD_Clear();
@@ -113,16 +130,21 @@ void main(void){
         state = SET_WAIT_RELEASE;
         break;
       case SET:
-        delayMs(100);
         currentChar = KeyPad_Scan();
         if(currentChar == '*' || currentChar == '#'){
           state = SET_INVALID;
         }else{
+          pin = pin + atoi(&currentChar) * pow( 10, (3 - numCount));
           if(numCount < 3){
             LCD_PrintChar(currentChar);
             numCount++;
             state = SET_WAIT_RELEASE;
           }else{
+            LCD_PrintChar(currentChar);
+            delayMs(500);
+            if(pinTrack == MAX_PINS)pinTrack = 0;
+            pins[pinTrack] = pin;
+            pinTrack++;
             state = SET_VALID;
           }
         }
