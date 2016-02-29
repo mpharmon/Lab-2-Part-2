@@ -19,5 +19,8 @@
 //Delay function (in microseconds)
 void delayUs(unsigned int delay);
 
+//Delay function (in Miliseconds)
+void delayMs(unsigned int delay);
+
 #endif	/* TIMER_H */
 

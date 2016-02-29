@@ -16,6 +16,11 @@
 #include <xc.h>
 #include "timer.h"
 
+void delayMs(unsigned int delay){
+  int x;
+  for(x = 0; x < delay; x++)delayUs(1000);
+}
+
 void delayUs(unsigned int delay){
   TMR2 = 0;// Reset Timer Register
   PR2 = delay;// Period Register; Exponents of uS and MHz cancel
