@@ -8,6 +8,7 @@
 #include <math.h>
 
 #define MAX_PINS 10
+#define something
 
 typedef enum enumState{
   PRE_ENTER,
@@ -55,6 +56,7 @@ void main(void){
         currentChar = KeyPad_Scan();
         if(numCount == 0){
           if(currentChar == '*'){
+            LCD_PrintChar(currentChar);
             state = ENTER_WAIT_RELEASE;
           }else if(currentChar == '#'){
             state = ENTER_INVALID;
@@ -65,6 +67,8 @@ void main(void){
           }
         }else if(numCount == 1){
           if(lastChar == '*' && currentChar == '*'){
+            LCD_PrintChar(currentChar);
+            delayMs(100);
             state = PRE_SET;
           }else if(( lastChar == '*' && currentChar != '*')|| (lastChar != '*' && currentChar == '*') || currentChar == '#'){
             state = ENTER_INVALID;
@@ -105,7 +109,7 @@ void main(void){
         break;
       case ENTER_VALID:
         LCD_Clear();
-        LCD_PrintString("Valid");
+        LCD_PrintString("Good");
         state = PRE_ENTER;
         lastChar = NULL;
         numCount = 0;
@@ -113,7 +117,7 @@ void main(void){
         break;
       case ENTER_INVALID:
         LCD_Clear();
-        LCD_PrintString("Invalid");
+        LCD_PrintString("Bad");
         state = PRE_ENTER;
         lastChar = NULL;
         numCount = 0;
